@@ -15,6 +15,7 @@ Content-Type: application/json
 ###
 
 GET http://localhost:3000/books/
+Authorization: bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJhaHVsMTIzIiwiaWF0IjoxNjU3NTQxNjk4fQ.6GGA6_m71zGNGElvUfvHpIWHeGZ6a_-sr2RSi9FwwcI"
 
 
 ###
@@ -26,3 +27,4 @@ Content-Type: application/json
     "username":"rahul123",
     "password": "rahul@456"
 }
+

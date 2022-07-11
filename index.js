@@ -3,7 +3,7 @@ const path = require("path");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 const bcrypt = require("bcrypt");
-
+const jwt = require("jsonwebtoken");
 const app = express();
 app.use(express.json());
 const dbPath = path.join(__dirname, "goodreads.db");
@@ -27,18 +27,34 @@ const initializeDBAndServer = async () => {
 initializeDBAndServer();
 
 // Get Books API
-app.get("/books/", async (request, response) => {
-  const getBooksQuery = `
-  SELECT
-    *
-  FROM
-    book
-  ORDER BY
-    book_id;`;
-  const booksArray = await db.all(getBooksQuery);
-  response.send(booksArray);
-});
 
+app.get("/books/", (request, response) => {
+  let jwtToken;
+  const authHeader = request.headers["authorization"];
+  if (authHeader !== undefined) {
+    jwtToken = authHeader.split(" ")[1];
+  }
+  if (jwtToken === undefined) {
+    response.status(401);
+    response.send("Invalid Access Token");
+  } else {
+    jwt.verify(jwtToken, "jdfdkgjkdfjg", async (error, user) => {
+      if (error) {
+        response.send("Invalid Access Token2");
+      } else {
+        const getBooksQuery = `
+            SELECT
+              *
+            FROM
+             book
+            ORDER BY
+              book_id;`;
+        const booksArray = await db.all(getBooksQuery);
+        response.send(booksArray);
+      }
+    });
+  }
+});
 // create user API
 
 app.post("/users/", async (request, response) => {
@@ -94,7 +110,9 @@ app.post("/login/", async (request, response) => {
     // compare hashes password send response
     const isPasswordMatch = await bcrypt.compare(password, dbUser.password);
     if (isPasswordMatch === true) {
-      response.send("Login success");
+      const payload = { username: username };
+      const jwtToken = jwt.sign(payload, "jdfdkgjkdfjg");
+      response.send({ jwtToken });
     } else {
       response.status(400);
       response.send("Invalid Password");
