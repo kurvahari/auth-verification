@@ -73,3 +73,31 @@ app.post("/users/", async (request, response) => {
     response.send("user already existed");
   }
 });
+
+// login user
+
+app.post("/login/", async (request, response) => {
+  const { username, password } = request.body;
+  const selectUserQuery = `
+  SELECT 
+    * 
+  FROM 
+    user 
+  WHERE 
+    username = '${username}'`;
+  const dbUser = await db.get(selectUserQuery);
+  if (dbUser === undefined) {
+    // send error response
+    response.status(400);
+    response.send("Invalid User");
+  } else {
+    // compare hashes password send response
+    const isPasswordMatch = await bcrypt.compare(password, dbUser.password);
+    if (isPasswordMatch === true) {
+      response.send("Login success");
+    } else {
+      response.status(400);
+      response.send("Invalid Password");
+    }
+  }
+});
